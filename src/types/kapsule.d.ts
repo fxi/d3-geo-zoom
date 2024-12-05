@@ -3,6 +3,7 @@ declare module 'kapsule' {
 
   interface PropDefinition {
     default?: any;
+    defaultVal?: any;
     onChange?: (newVal: any, state: any) => void;
     triggerUpdate?: boolean;
     type?: PropType;

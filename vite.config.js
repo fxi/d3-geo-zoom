@@ -5,11 +5,13 @@ export default defineConfig({
     lib: {
       entry: 'src/index.ts',
       name: 'd3GeoZoom',
-      fileName: () => `d3-geo-zoom.js`
+      fileName: () => `d3-geo-zoom.js`,
+      formats: ['es']
     },
     rollupOptions: {
       external: ['d3', 'kapsule', 'versor'],
       output: {
+        exports: 'named',
         globals: {
           'd3': 'd3',
           'kapsule': 'Kapsule',
@@ -18,7 +20,11 @@ export default defineConfig({
       }
     }
   },
+  resolve: {
+    mainFields: ['main', 'module'] // Prioritize 'main' over 'module'
+  },
   server: {
-    open: '/demo/svg/'
-  }
+    open: '/demo/svg/',
+    base: '/'
+  },
 });
