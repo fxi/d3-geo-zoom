@@ -1,60 +1,61 @@
 {
   "name": "d3-geo-zoom",
   "version": "1.5.1",
-  "description": "Zoom and Pan D3 Geo projections",
+  "description": "Zoom and Pan D3 Geo projections (Ported from vasturiano/d3-geo-zoom)",
   "type": "module",
-  "unpkg": "dist/d3-geo-zoom.min.js",
   "main": "dist/d3-geo-zoom.mjs",
   "module": "dist/d3-geo-zoom.mjs",
   "exports": {
-    "umd": "./dist/d3-geo-zoom.min.js",
     "default": "./dist/d3-geo-zoom.mjs"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vasturiano/d3-geo-zoom.git"
+    "url": "git+https://github.com/fxi/d3-geo-zoom.git"
   },
-  "homepage": "https://github.com/vasturiano/d3-geo-zoom",
+  "homepage": "https://github.com/fxi/d3-geo-zoom",
   "keywords": [
     "d3",
     "geo",
     "zoom",
     "pan",
-    "versor"
+    "versor",
+    "ported"
   ],
   "author": {
     "name": "Vasco Asturiano",
     "url": "https://github.com/vasturiano"
   },
+  "contributors": [
+    {
+      "name": "fxi",
+      "url": "https://github.com/fxi"
+    }
+  ],
   "bugs": {
-    "url": "https://github.com/vasturiano/d3-geo-zoom/issues"
+    "url": "https://github.com/fxi/d3-geo-zoom/issues"
   },
   "scripts": {
-    "build": "rimraf dist && rollup -c",
-    "dev": "rollup -w -c",
-    "prepare": "npm run build"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "files": [
     "dist/**/*",
     "example/**/*"
   ],
   "dependencies": {
-    "d3-selection": "2 - 3",
-    "d3-zoom": "2 - 3",
+    "d3": "^7.9.0",
+    "d3-selection": "^3.0.0",
+    "d3-zoom": "^3.0.0",
     "kapsule": "^1.14",
+    "topojson-client": "^3.1.0",
     "versor": "~0.1.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.12",
-    "@babel/preset-env": "^7.20.2",
-    "@rollup/plugin-babel": "^6.0.3",
-    "@rollup/plugin-commonjs": "^24.0.1",
-    "@rollup/plugin-node-resolve": "^15.0.1",
-    "@rollup/plugin-terser": "^0.4.0",
-    "rimraf": "^4.1.2",
-    "rollup": "^3.14.0"
+    "@vitejs/plugin-basic-ssl": "^1.0.1",
+    "vite": "^4.3.9"
   },
   "engines": {
-    "node": ">=12"
+    "node": ">=16"
   }
 }

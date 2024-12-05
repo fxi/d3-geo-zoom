@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D3 Geo Zoom</title>
+  <style>
+    body { 
+      margin: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div id="world"></div>
+  <script type="module">
+    import * as d3 from 'd3';
+    import { feature } from 'topojson-client';
+    import { geoZoom } from './src/index.js';
+
+    const MARGIN = 5;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    const svg = d3.select('#world').append('svg')
+      .attr('width', width)
+      .attr('height', height);
+
+    const projection = d3.geoOrthographic()
+      .scale((Math.min(width, height)) / 2 - MARGIN)
+      .translate([width / 2, height / 2]);
+
+    const path = d3.geoPath()
+      .projection(projection);
+
+    geoZoom()
+      .projection(projection)
+      .onMove(render)
+      (svg.node());
+
+    // Load world data using fetch instead of d3.json
+    fetch('https://unpkg.com/world-atlas@1/world/110m.json')
+      .then(response => response.json())
+      .then(world => {
+        svg.append('path').attr('class', 'geo-feature')
+          .datum({ type: 'Sphere' })
+          .attr('fill', 'aqua');
+
+        svg.append('path').attr('class', 'geo-feature')
+          .datum(feature(world, world.objects.land))
+          .attr('fill', 'maroon');
+
+        render();
+      });
+
+    function render() {
+      svg.selectAll('path.geo-feature').attr('d', path);
+    }
+  </script>
+</body>
+</html>
