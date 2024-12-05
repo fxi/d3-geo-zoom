@@ -49,8 +49,12 @@
     "versor": "~0.1.2"
   },
   "devDependencies": {
+    "@ts-morph/bootstrap": "^0.25.0",
+    "@types/d3": "^7.4.3",
     "@vitejs/plugin-basic-ssl": "^1.0.1",
     "topojson-client": "^3.1.0",
+    "ts-migrate": "^0.1.35",
+    "typescript": "^5.7.2",
     "vite": "^4.3.9"
   },
   "engines": {
