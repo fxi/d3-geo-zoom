@@ -17,5 +17,8 @@ export default defineConfig({
         }
       }
     }
+  },
+  server: {
+    open: '/demo/svg/'
   }
 });
