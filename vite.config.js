@@ -1,10 +1,9 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  plugins: [],
   build: {
     lib: {
-      entry: 'src/index.js',
+      entry: 'src/index.ts',
       name: 'd3GeoZoom',
       fileName: () => `d3-geo-zoom.js`
     },
