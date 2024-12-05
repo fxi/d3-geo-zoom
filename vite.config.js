@@ -6,14 +6,13 @@ export default defineConfig({
     lib: {
       entry: 'src/index.js',
       name: 'd3GeoZoom',
-      fileName: (format) => `d3-geo-zoom.${format}.js`
+      fileName: () => `d3-geo-zoom.js`
     },
     rollupOptions: {
-      external: ['d3-selection', 'd3-zoom', 'kapsule', 'versor'],
+      external: ['d3', 'kapsule', 'versor'],
       output: {
         globals: {
-          'd3-selection': 'd3',
-          'd3-zoom': 'd3',
+          'd3': 'd3',
           'kapsule': 'Kapsule',
           'versor': 'Versor'
         }
