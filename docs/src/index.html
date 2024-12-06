@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>d3-geo-zoom Demo</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src="https://unpkg.com/d3@7.9.0/dist/d3.min.js"></script>
+    <script src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>d3-geo-zoom</h1>
+        <p>Interactive demo of D3 geographic projection zooming and panning</p>
+        <nav>
+            <a href="https://github.com/fxi/d3-geo-zoom" target="_blank">GitHub</a>
+            <a href="#examples">Examples</a>
+            <a href="#api">API</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="demo">
+            <div class="demo-container">
+                <div id="map"></div>
+                <div class="controls">
+                    <label>
+                        Projection:
+                        <select id="projection">
+                            <option value="orthographic">Orthographic</option>
+                            <option value="mercator">Mercator</option>
+                            <option value="equirectangular">Equirectangular</option>
+                        </select>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="northUp"> Keep North Up
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <section id="examples">
+            <h2>Examples</h2>
+            <div class="code-example">
+                <h3>Basic Usage</h3>
+                <pre><code>import { geoZoom } from 'd3-geo-zoom';
+import { select } from 'd3-selection';
+import { geoOrthographic, geoPath } from 'd3-geo';
+
+// Create SVG element
+const svg = select('#map')
+  .append('svg')
+  .attr('width', 800)
+  .attr('height', 600);
+
+// Setup projection
+const projection = geoOrthographic()
+  .scale(250)
+  .center([0, 0]);
+
+// Create path generator
+const path = geoPath()
+  .projection(projection);
+
+// Initialize zoom behavior
+const zoom = geoZoom({
+  projection: projection,
+  onMove: () => {
+    // Update map on zoom/pan
+    g.selectAll('path').attr('d', path);
+  }
+});
+
+// Apply zoom behavior to SVG
+zoom(svg.node());</code></pre>
+            </div>
+        </section>
+
+        <section id="api">
+            <h2>API Reference</h2>
+            <div class="api-docs">
+                <h3>geoZoom(config)</h3>
+                <p>Creates a new geo zoom behavior with the provided configuration.</p>
+
+                <h4>Configuration Options</h4>
+                <ul>
+                    <li><code>projection</code> - The geographic projection to use</li>
+                    <li><code>scaleExtent</code> - Array defining allowed scale range [min, max]</li>
+                    <li><code>northUp</code> - Boolean to prevent z-axis rotation</li>
+                    <li><code>onMove</code> - Callback function called after zoom/pan</li>
+                </ul>
+
+                <h4>Methods</h4>
+                <ul>
+                    <li><code>projection(projection)</code> - Updates the geographic projection</li>
+                    <li><code>scaleExtent([min, max])</code> - Updates allowed scale range</li>
+                    <li><code>northUp(boolean)</code> - Updates z-axis rotation prevention</li>
+                    <li><code>onMove(callback)</code> - Updates the move callback</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Based on the original <a href="https://github.com/vasturiano/d3-geo-zoom">d3-geo-zoom</a> by Vasco Asturiano</p>
+    </footer>
+
+    <script type="module" src="./main.js"></script>
+</body>
+</html>

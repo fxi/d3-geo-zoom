@@ -9,35 +9,55 @@ const copyright = readFileSync("./LICENSE", "utf-8")
   .map(line => line.replace(/^copyright\s+/i, ""))
   .join(", ");
 
-export default defineConfig({
-  build: {
-    lib: {
-      entry: 'src/index.ts',
-      name: 'd3',
-      fileName: (format) => `${pkg.name}${format === 'es' ? '.esm' : ''}.js`,
-      formats: ['es', 'umd']
-    },
-    rollupOptions: {
-      external: ['d3', 'kapsule', 'versor'],
-      output: {
-        extend: true,
-        banner: `// ${pkg.homepage} v${pkg.version} Copyright ${copyright}`,
-        globals: {
-          'd3': 'd3',
-          'kapsule': 'Kapsule',
-          'versor': 'Versor'
+export default defineConfig(({ command, mode }) => {
+  const config = {
+    resolve: {
+      mainFields: ['main', 'module']
+    }
+  };
+
+  // Docs configuration (both dev and build)
+  if (mode === 'docs') {
+    return {
+      ...config,
+      base: '/d3-geo-zoom/', // GitHub Pages repository name
+      root: 'docs/src',
+      build: {
+        outDir: '../dist',
+        emptyOutDir: true
+      }
+    };
+  }
+
+  // Library configuration
+  return {
+    ...config,
+    build: {
+      lib: {
+        entry: 'src/index.ts',
+        name: 'd3',
+        fileName: (format) => `${pkg.name}${format === 'es' ? '.esm' : ''}.js`,
+        formats: ['es', 'umd']
+      },
+      rollupOptions: {
+        external: ['d3', 'kapsule', 'versor'],
+        output: {
+          extend: true,
+          banner: `// ${pkg.homepage} v${pkg.version} Copyright ${copyright}`,
+          globals: {
+            'd3': 'd3',
+            'kapsule': 'Kapsule',
+            'versor': 'Versor'
+          }
         }
       }
+    },
+    server: {
+      open: '/demo/svg/',
+      base: '/'
+    },
+    test: {
+      environment: 'jsdom'
     }
-  },
-  resolve: {
-    mainFields: ['main', 'module']
-  },
-  server: {
-    open: '/demo/svg/',
-    base: '/'
-  },
-  test: {
-    environment: 'jsdom'
-  }
+  };
 });
