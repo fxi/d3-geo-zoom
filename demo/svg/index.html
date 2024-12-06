@@ -8,15 +8,28 @@
     body { 
       margin: 0;
       overflow: hidden;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+    }
+    .sphere {
+      fill: #1a1f35;
+    }
+    .land {
+      fill: #2a1b3d;
+      stroke: #ff69b4;
+      stroke-width: 0.5;
+      filter: url(#glow);
+    }
+    .land:hover {
+      fill: #3d2656;
     }
   </style>
 </head>
 <body>
   <div id="world"></div>
   <script type="module">
+    import { geoZoom } from '/dist/d3-geo-zoom.js';
     import * as d3 from 'd3';
     import { feature } from 'topojson-client';
-    import { geoZoom } from '/dist/d3-geo-zoom.js';
 
     const MARGIN = 5;
     const width = window.innerWidth;
@@ -25,6 +38,21 @@
     const svg = d3.select('#world').append('svg')
       .attr('width', width)
       .attr('height', height);
+
+    // Add glow filter
+    const defs = svg.append('defs');
+    const filter = defs.append('filter')
+      .attr('id', 'glow');
+
+    filter.append('feGaussianBlur')
+      .attr('stdDeviation', '2')
+      .attr('result', 'coloredBlur');
+
+    const feMerge = filter.append('feMerge');
+    feMerge.append('feMergeNode')
+      .attr('in', 'coloredBlur');
+    feMerge.append('feMergeNode')
+      .attr('in', 'SourceGraphic');
 
     const projection = d3.geoOrthographic()
       .scale((Math.min(width, height)) / 2 - MARGIN)
@@ -36,25 +64,25 @@
     geoZoom()
       .projection(projection)
       .onMove(render)
+      .northUp(true)
       (svg.node());
 
-    // Load world data using fetch instead of d3.json
     fetch('https://unpkg.com/world-atlas@1/world/110m.json')
       .then(response => response.json())
       .then(world => {
-        svg.append('path').attr('class', 'geo-feature')
-          .datum({ type: 'Sphere' })
-          .attr('fill', 'aqua');
+        svg.append('path')
+          .attr('class', 'sphere')
+          .datum({ type: 'Sphere' });
 
-        svg.append('path').attr('class', 'geo-feature')
-          .datum(feature(world, world.objects.land))
-          .attr('fill', 'maroon');
+        svg.append('path')
+          .attr('class', 'land')
+          .datum(feature(world, world.objects.land));
 
         render();
       });
 
     function render() {
-      svg.selectAll('path.geo-feature').attr('d', path);
+      svg.selectAll('path').attr('d', path);
     }
   </script>
 </body>
