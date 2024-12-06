@@ -100,8 +100,10 @@ The rotation process:
 - `npm run dev`: Start development server
 - `npm run build`: Build for production
 - `npm run preview`: Preview production build
-- `npm test`: Run tests
-- `npm run commit`: Create a standardized commit message
+- `npm test`: Run tests in watch mode (for development)
+- `npm run test:ci`: Run tests once (used in CI and git hooks)
+- `npm run test:ui`: Open test UI
+- `npm run coverage`: Generate test coverage report
 
 ### Contributing
 
@@ -113,25 +115,28 @@ This project uses [Commitizen](https://github.com/commitizen/cz-cli) for standar
 npm run commit
 ```
 
-This will start an interactive prompt that helps you create a properly formatted commit message:
+This will:
+1. Run tests in non-watch mode (via pre-commit hook)
+2. Start an interactive prompt to create a properly formatted commit message
+3. Validate the commit message format
 
-1. Select the type of change:
+The prompt will help you create a commit message with:
+1. Type of change:
    - feat: A new feature
    - fix: A bug fix
    - docs: Documentation changes
-   - style: Code style changes (formatting, etc)
+   - style: Code style changes
    - refactor: Code changes that neither fix a bug nor add a feature
    - perf: Performance improvements
    - test: Adding or updating tests
    - chore: Changes to build process or auxiliary tools
 
-2. Enter the scope (optional):
+2. Scope (optional):
    - The part of the codebase you're modifying (e.g., zoom, projection)
 
-3. Write a short description
-4. Provide a longer description (optional)
-5. List any breaking changes (optional)
-6. Reference issues being closed (optional)
+3. Description
+4. Breaking changes (if any)
+5. Issues being closed (if any)
 
 ### Continuous Integration and Deployment
 
@@ -142,7 +147,7 @@ Tests run automatically on:
 - Every push to the main branch
 - All pull requests
 
-The test suite runs against Node.js versions 16.x, 18.x, and 20.x to ensure broad compatibility.
+The test suite runs against Node.js versions 18.x and 20.x.
 
 #### Automated Versioning and Publishing
 
@@ -156,9 +161,10 @@ The version number is automatically determined by analyzing commit messages:
 ##### Release Process
 
 1. Make your changes
-2. Create commits using `npm run commit`
-3. Push to the main branch
-4. The GitHub Action will automatically:
+2. Stage them with `git add`
+3. Run `npm run commit` to create a properly formatted commit
+4. Push to main branch
+5. GitHub Actions will automatically:
    - Run tests
    - Analyze commit messages
    - Determine the next version number

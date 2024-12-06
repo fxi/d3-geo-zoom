@@ -42,13 +42,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "vitest",
+    "test:ci": "vitest run",
     "test:ui": "vitest --ui",
     "coverage": "vitest run --coverage",
     "semantic-release": "semantic-release",
-    "commit": "git-cz",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "commit": "git-cz"
   },
   "config": {
     "commitizen": {
@@ -90,7 +90,7 @@
     "vitest": "^1.0.0"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "publishConfig": {
     "access": "public"
