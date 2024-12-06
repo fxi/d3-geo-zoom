@@ -1,4 +1,4 @@
-import { select as d3Select, pointers as d3Pointers, Selection } from 'd3-selection';
+import { select as d3Select, pointers as d3Pointers } from 'd3-selection';
 import { zoom as d3Zoom, D3ZoomEvent, ZoomBehavior } from 'd3-zoom';
 import { GeoProjection } from 'd3-geo';
 import versor from 'versor';
