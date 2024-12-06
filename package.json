@@ -44,7 +44,15 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "semantic-release": "semantic-release",
+    "commit": "git-cz",
+    "prepare": "husky install"
+  },
+  "config": {
+    "commitizen": {
+      "path": "@commitlint/cz-commitlint"
+    }
   },
   "files": [
     "dist",
@@ -60,10 +68,22 @@
     "versor": "~0.1.2"
   },
   "devDependencies": {
+    "@commitlint/cli": "^18.4.3",
+    "@commitlint/config-conventional": "^18.4.3",
+    "@commitlint/cz-commitlint": "^18.4.3",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^11.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.2.3",
+    "@semantic-release/npm": "^11.0.1",
+    "@semantic-release/release-notes-generator": "^12.1.0",
     "@types/d3": "^7.4.3",
     "@types/node": "^20.10.4",
     "@vitest/ui": "^1.0.0",
+    "commitizen": "^4.3.0",
+    "husky": "^8.0.0",
     "jsdom": "^25.0.1",
+    "semantic-release": "^22.0.8",
     "typescript": "^5.3.3",
     "vite": "^4.3.9",
     "vitest": "^1.0.0"
