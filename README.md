@@ -9,7 +9,7 @@ This library provides smooth zooming and panning functionality for D3 geographic
 ## Installation
 
 ```bash
-npm install d3-geo-zoom
+npm install @fxi/d3-geo-zoom
 ```
 
 ## Quick Start
