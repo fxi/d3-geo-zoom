@@ -14,7 +14,7 @@ export default defineConfig({
     lib: {
       entry: 'src/index.ts',
       name: 'd3',
-      fileName: () => `${pkg.name}.js`,
+      fileName: (format) => `${pkg.name}${format === 'es' ? '.esm' : ''}.js`,
       formats: ['es', 'umd']
     },
     rollupOptions: {
