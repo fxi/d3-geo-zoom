@@ -40,14 +40,13 @@ export default defineConfig(({ command, mode }) => {
         formats: ['es', 'umd']
       },
       rollupOptions: {
-        external: ['d3', 'kapsule', 'versor'],
+        external: ['d3', 'kapsule'],
         output: {
           extend: true,
           banner: `// ${pkg.homepage} v${pkg.version} Copyright ${copyright}`,
           globals: {
             'd3': 'd3',
-            'kapsule': 'Kapsule',
-            'versor': 'Versor'
+            'kapsule': 'Kapsule'
           }
         }
       }
