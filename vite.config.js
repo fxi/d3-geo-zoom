@@ -37,4 +37,7 @@ export default defineConfig({
     open: '/demo/svg/',
     base: '/'
   },
+  test: {
+    environment: 'jsdom'
+  }
 });

@@ -41,7 +41,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "coverage": "vitest run --coverage"
   },
   "files": [
     "dist",
@@ -58,7 +61,12 @@
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
-    "vite": "^4.3.9"
+    "@types/node": "^20.10.4",
+    "@vitest/ui": "^1.0.0",
+    "jsdom": "^25.0.1",
+    "typescript": "^5.3.3",
+    "vite": "^4.3.9",
+    "vitest": "^1.0.0"
   },
   "engines": {
     "node": ">=16"
