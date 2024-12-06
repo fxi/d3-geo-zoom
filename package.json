@@ -1,6 +1,6 @@
 {
   "name": "@fxi/d3-geo-zoom",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Zoom and Pan D3 Geo projections (Ported from vasturiano/d3-geo-zoom)",
   "type": "module",
   "main": "dist/@fxi/d3-geo-zoom.js",
