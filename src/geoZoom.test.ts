@@ -88,6 +88,21 @@ describe('d3-geo-zoom', () => {
     });
   });
 
+  describe('Projection Changes', () => {
+    it('should maintain correct scale when projection changes', () => {
+      // Setup initial projection and zoom
+      const initialProjection = geoOrthographic().scale(100).translate([0, 0]);
+      zoom.projection(initialProjection);
+      
+      // Change to a new projection with different scale
+      const newProjection = geoOrthographic().scale(200).translate([0, 0]);
+      zoom.projection(newProjection);
+      
+      // Scale should match the new projection immediately
+      expect(newProjection.scale()).toBe(200);
+    });
+  });
+
   describe('API Consistency', () => {
     it('should maintain method chaining', () => {
       const instance = zoom

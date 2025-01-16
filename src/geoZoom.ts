@@ -1,5 +1,5 @@
 import { select as d3Select, pointers as d3Pointers } from 'd3-selection';
-import { zoom as d3Zoom, D3ZoomEvent, ZoomBehavior } from 'd3-zoom';
+import { zoom as d3Zoom, D3ZoomEvent, ZoomBehavior, zoomIdentity } from 'd3-zoom';
 import { GeoProjection } from 'd3-geo';
 import versor from 'versor';
 import Kapsule from 'kapsule';
@@ -7,6 +7,7 @@ import Kapsule from 'kapsule';
 interface State {
   projection?: GeoProjection;
   unityScale: number;
+  currentScale: number; // Track the actual scale value
   scaleExtent: [number, number];
   northUp: boolean;
   onMove: (params: { scale: number; rotation: [number, number, number] }) => void;
@@ -19,7 +20,26 @@ export default Kapsule({
   props: {
     projection: {
       onChange(projection: GeoProjection | undefined, state: State) {
-        state.unityScale = projection ? projection.scale() : 1;
+        if (!projection) {
+          state.unityScale = 1;
+          state.currentScale = 1;
+          return;
+        }
+
+        // Get the new projection's base scale
+        const newScale = projection.scale();
+        
+        if (!state.unityScale) {
+          // First time initialization
+          state.unityScale = newScale;
+          state.currentScale = newScale;
+        } else {
+          // Keep the relative scale when changing projections
+          const relativeScale = state.currentScale / state.unityScale;
+          state.unityScale = newScale;
+          state.currentScale = newScale * relativeScale;
+          projection.scale(state.currentScale);
+        }
       }
     },
     scaleExtent: {
@@ -33,55 +53,74 @@ export default Kapsule({
   },
 
   init(nodeEl: Element, state: State) {
+    // Initialize state with defaults
+    state.unityScale = state.projection?.scale() || 1;
+    state.currentScale = state.unityScale;
+
     // Initialize zoom behavior
-    d3Select(nodeEl).call(state.zoom = d3Zoom()
+    state.zoom = d3Zoom()
       .scaleExtent(state.scaleExtent)
       .on('start', zoomStarted)
-      .on('zoom', zoomed)
-    );
+      .on('zoom', zoomed);
 
+    // Initialize interaction state
     let v0: [number, number, number] | null = null;
     let r0: [number, number, number] | null = null;
     let q0: [number, number, number, number] | null = null;
 
+    // Initialize zoom transform
+    d3Select(nodeEl)
+      .call(state.zoom)
+      .call(state.zoom.transform, zoomIdentity);
+
     function zoomStarted(ev: D3ZoomEvent<Element, unknown>) {
-      if (!state.projection) return;
+      const proj = state.projection;
+      if (!proj?.invert) return;
 
       const coords = getPointerCoords(ev);
       if (!coords) return;
 
-      const inverted = state.projection.invert(coords);
+      const inverted = proj.invert(coords);
       if (!inverted) return;
 
       v0 = versor.cartesian(inverted);
-      r0 = state.projection.rotate();
-      q0 = versor(r0);
+      r0 = proj.rotate();
+      // Cast the rotation array to ensure it's treated as a 3D array
+      q0 = versor([r0[0], r0[1], r0[2]] as [number, number, number]);
     }
 
     function zoomed(ev: D3ZoomEvent<Element, unknown>) {
-      if (!state.projection || !v0 || !r0 || !q0) return;
+      const proj = state.projection;
+      if (!proj?.invert || !v0 || !r0 || !q0) return;
 
-      const scale = ev.transform.k * state.unityScale;
-      state.projection.scale(scale);
+      // Update current scale
+      state.currentScale = ev.transform.k * state.unityScale;
+      proj.scale(state.currentScale);
 
       const coords = getPointerCoords(ev);
       if (!coords) return;
 
-      const inverted = state.projection.rotate(r0).invert(coords);
+      const rotated = proj.rotate(r0);
+      if (!rotated.invert) return;
+      
+      const inverted = rotated.invert(coords);
       if (!inverted) return;
 
       const v1 = versor.cartesian(inverted);
       const q1 = versor.multiply(q0, versor.delta(v0, v1));
-      const rotation = versor.rotation(q1);
+      const rotationRaw = versor.rotation(q1);
+      // Explicitly construct a 3D array from the quaternion rotation
+      const rotation: [number, number, number] = [
+        rotationRaw[0] || 0,
+        rotationRaw[1] || 0,
+        rotationRaw[2] || 0
+      ];
 
       if (state.northUp) {
         rotation[2] = 0; // Don't rotate on Z axis
       }
-
-      // Cast to ensure correct type
-      const finalRotation: [number, number, number] = [rotation[0], rotation[1], rotation[2]];
-      state.projection.rotate(finalRotation);
-      state.onMove({ scale, rotation: finalRotation });
+      proj.rotate(rotation);
+      state.onMove({ scale: state.currentScale, rotation });
     }
 
     function getPointerCoords(zoomEv: D3ZoomEvent<Element, unknown>): [number, number] | null {
