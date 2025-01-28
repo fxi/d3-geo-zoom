@@ -94,13 +94,13 @@
           <button id="zoomOut">Zoom Out</button>
         </div>
         <div class="direction-controls">
-          <button id="moveUp">↑</button>
-          <button id="moveLeft">←</button>
-          <button id="moveRight">→</button>
-          <button id="moveDown">↓</button>
+          <button data-dir="up" id="moveUp">↑</button>
+          <button data-dir="left" id="moveLeft">←</button>
+          <button data-dir="right" id="moveRight">→</button>
+          <button data-dir="down" id="moveDown">↓</button>
         </div>
         <div class="options-controls">
-          <button id="toggleNorth">North Up</button>
+          <button class="active" id="toggleNorth">North Up</button>
           <button id="toggleProjection">Toggle Projection</button>
         </div>
       </div>
@@ -110,6 +110,9 @@
       import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
       import { geoZoom } from "../../dist/@fxi/d3-geo-zoom.esm.js";
       import { feature } from "https://cdn.jsdelivr.net/npm/topojson-client@3/+esm";
+
+      let northUp = true;
+      const toggleNorthBtn = document.getElementById("toggleNorth");
 
       const MARGIN = 5;
       const width = window.innerWidth;
@@ -212,9 +215,10 @@
 
       // Direction controls with proper transition
       ["up", "down", "left", "right"].forEach((direction) => {
-        document.getElementById(
-          `move${direction.charAt(0).toUpperCase() + direction.slice(1)}`
-        ).onclick = () => {
+        const btnDirection = document.querySelector(
+          `[data-dir=${direction}]`
+        );
+        btnDirection.onclick = () => {
           directionTransition(direction);
         };
       });
@@ -227,16 +231,12 @@
           ArrowLeft: "left",
           ArrowRight: "right",
         };
-
         const direction = directionMap[event.key];
         if (direction) {
           directionTransition(direction);
           event.preventDefault();
         }
       });
-
-      let northUp = false;
-      const toggleNorthBtn = document.getElementById("toggleNorth");
 
       toggleNorthBtn.onclick = () => {
         northUp = !northUp;
@@ -251,20 +251,7 @@
             startRotation[1],
             0,
           ]);
-
-          svg
-            .selectAll("path")
-            .transition()
-            .duration(750)
-            .tween("rotate", function () {
-              return function (t) {
-                const interpolated = startRotation.map(
-                  (start, i) => start + (targetRotation[i] - start) * t
-                );
-                currentProjection.rotate(interpolated);
-                render();
-              };
-            });
+          angleTransition(startRotation, targetRotation);
         }
       };
 
@@ -287,7 +274,10 @@
         }
 
         // Update zoom instance with new projection
-        zoomInstance = geoZoom().projection(currentProjection).onMove(render);
+        zoomInstance = geoZoom()
+          .projection(currentProjection)
+          .onMove(render)
+          .northUp(northUp);
 
         // Apply to SVG element
         zoomInstance(svg.node());
