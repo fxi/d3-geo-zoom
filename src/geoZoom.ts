@@ -4,20 +4,54 @@ import { GeoProjection } from 'd3-geo';
 import versor from 'versor';
 import Kapsule from 'kapsule';
 
+type Direction = 'left' | 'right' | 'up' | 'down';
+
 interface State {
   projection?: GeoProjection;
   unityScale: number;
   currentScale: number; // Track the actual scale value
   scaleExtent: [number, number];
   northUp: boolean;
+  animate: boolean;
+  animationDuration: number;
   onMove: (params: { scale: number; rotation: [number, number, number] }) => void;
   zoom?: ZoomBehavior<Element, unknown>;
+  currentRotation?: [number, number, number];
+  targetRotation?: [number, number, number];
+  animationStart?: number;
 }
 
-type GeoZoomInstance = (element: HTMLElement) => void;
+interface GeoZoomMethods {
+  moveDirection: (direction: Direction, degrees?: number) => void;
+  animate: (enabled: boolean) => GeoZoomInstance;
+  animationDuration: (duration: number) => GeoZoomInstance;
+  rotateTo: (rotation: [number, number, number]) => void;
+}
+
+type GeoZoomInstance = ((element: HTMLElement) => void) & GeoZoomMethods & {
+  projection: (proj: GeoProjection) => GeoZoomInstance;
+  onMove: (callback: (params: { scale: number; rotation: [number, number, number] }) => void) => GeoZoomInstance;
+  northUp: (enabled: boolean) => GeoZoomInstance;
+  scaleExtent: (extent: [number, number]) => GeoZoomInstance;
+};
 
 export default Kapsule({
   props: {
+    animate: { 
+      default: true,
+      onChange(enabled: boolean, state: State) {
+        // Reset any ongoing animation when disabled
+        if (!enabled) {
+          state.currentRotation = undefined;
+          state.targetRotation = undefined;
+          state.animationStart = undefined;
+        }
+      }
+    },
+    animationDuration: { 
+      default: 750,
+      triggerUpdate: false
+    },
     projection: {
       onChange(projection: GeoProjection | undefined, state: State) {
         if (!projection) {
@@ -52,7 +86,119 @@ export default Kapsule({
     onMove: { defaultVal: () => {} }
   },
 
+  methods: {
+    rotateTo(state: State, targetRotation: [number, number, number]) {
+      const proj = state.projection;
+      if (!proj) return;
+
+      const currentRotation = proj.rotate();
+      
+      if (state.animate) {
+        // Start a new animation
+        state.currentRotation = currentRotation;
+        state.targetRotation = targetRotation;
+        state.animationStart = Date.now();
+        requestAnimationFrame(() => this.updateAnimation(state));
+      } else {
+        // Apply immediately
+        proj.rotate(targetRotation);
+        state.onMove({ scale: state.currentScale, rotation: targetRotation });
+      }
+    },
+
+    animate(state: State, enabled: boolean) {
+      state.animate = enabled;
+      return this;
+    },
+
+    animationDuration(state: State, duration: number) {
+      state.animationDuration = duration;
+      return this;
+    },
+
+    moveDirection(state: State, direction: Direction, degrees: number = 20) {
+      const proj = state.projection;
+      if (!proj) return;
+
+      const r0 = proj.rotate();
+      const q0 = versor(r0);
+
+      // Calculate view-relative rotation
+      let viewRotation: [number, number, number];
+      switch (direction) {
+        case 'left':
+          viewRotation = [-degrees, 0, 0];
+          break;
+        case 'right':
+          viewRotation = [degrees, 0, 0];
+          break;
+        case 'up':
+          viewRotation = [0, -degrees, 0];
+          break;
+        case 'down':
+          viewRotation = [0, degrees, 0];
+          break;
+      }
+
+      const q1 = versor(viewRotation);
+      const q2 = versor.multiply(q1, q0);
+      const targetRotation = versor.rotation(q2);
+      
+      if (state.northUp) {
+        targetRotation[2] = 0;
+      }
+
+      if (state.animate) {
+        // Start a new animation
+        state.currentRotation = r0;
+        state.targetRotation = targetRotation;
+        state.animationStart = Date.now();
+        requestAnimationFrame(() => this.updateAnimation(state));
+      } else {
+        // Apply immediately
+        proj.rotate(targetRotation);
+        state.onMove({ scale: state.currentScale, rotation: targetRotation });
+      }
+    },
+
+    updateAnimation(state: State) {
+      const proj = state.projection;
+      if (!proj || !state.currentRotation || !state.targetRotation || !state.animationStart) return;
+
+      const now = Date.now();
+      const elapsed = now - state.animationStart;
+      const duration = state.animationDuration;
+
+      if (elapsed >= duration) {
+        // Animation complete
+        proj.rotate(state.targetRotation);
+        state.onMove({ scale: state.currentScale, rotation: state.targetRotation });
+        state.currentRotation = undefined;
+        state.targetRotation = undefined;
+        state.animationStart = undefined;
+        return;
+      }
+
+      // Calculate interpolation progress
+      const t = elapsed / duration;
+
+      // Interpolate between rotations using shortest path
+      const interpolatedRotation = state.currentRotation.map((start, i) => {
+        const end = state.targetRotation![i];
+        const diff = ((end - start + 180) % 360) - 180;
+        return start + diff * t;
+      }) as [number, number, number];
+
+      proj.rotate(interpolatedRotation);
+      state.onMove({ scale: state.currentScale, rotation: interpolatedRotation });
+
+      // Continue animation
+      requestAnimationFrame(() => this.updateAnimation(state));
+    }
+  },
+
   init(nodeEl: Element, state: State) {
+    console.log('init');
     // Initialize state with defaults
     state.unityScale = state.projection?.scale() || 1;
     state.currentScale = state.unityScale;
@@ -85,8 +231,7 @@ export default Kapsule({
 
       v0 = versor.cartesian(inverted);
       r0 = proj.rotate();
-      // Cast the rotation array to ensure it's treated as a 3D array
-      q0 = versor([r0[0], r0[1], r0[2]] as [number, number, number]);
+      q0 = versor(r0);
     }
 
     function zoomed(ev: D3ZoomEvent<Element, unknown>) {
@@ -108,19 +253,14 @@ export default Kapsule({
 
       const v1 = versor.cartesian(inverted);
       const q1 = versor.multiply(q0, versor.delta(v0, v1));
-      const rotationRaw = versor.rotation(q1);
-      // Explicitly construct a 3D array from the quaternion rotation
-      const rotation: [number, number, number] = [
-        rotationRaw[0] || 0,
-        rotationRaw[1] || 0,
-        rotationRaw[2] || 0
-      ];
+      const rotation = versor.rotation(q1);
 
-      if (state.northUp) {
-        rotation[2] = 0; // Don't rotate on Z axis
-      }
-      proj.rotate(rotation);
-      state.onMove({ scale: state.currentScale, rotation });
+      // Apply north up constraint if enabled
+      const finalRotation: [number, number, number] = state.northUp ? 
+        [rotation[0], rotation[1], 0] : 
+        rotation;
+      proj.rotate(finalRotation);
+      state.onMove({ scale: state.currentScale, rotation: finalRotation });
     }
 
     function getPointerCoords(zoomEv: D3ZoomEvent<Element, unknown>): [number, number] | null {

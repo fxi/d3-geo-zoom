@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>d3-geo-zoom Controls Example</title>
     <style>
         body { 
@@ -34,16 +35,33 @@
             padding: 10px;
             border-radius: 4px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            display: grid;
+            gap: 10px;
+        }
+        .zoom-controls {
+            display: grid;
+            gap: 5px;
+        }
+        .direction-controls {
+            display: grid;
+            grid-template-areas:
+                ".    up    ."
+                "left .    right"
+                ".    down  .";
+            gap: 5px;
+        }
+        .options-controls {
+            display: grid;
+            gap: 5px;
         }
         button {
-            display: block;
-            margin: 5px 0;
             padding: 8px 12px;
             border: none;
             border-radius: 4px;
             background: #007bff;
             color: white;
             cursor: pointer;
+            min-width: 40px;
         }
         button:hover {
             background: #0056b3;
@@ -54,17 +72,29 @@
         button.active:hover {
             background: #218838;
         }
+        #moveUp { grid-area: up; }
+        #moveDown { grid-area: down; }
+        #moveLeft { grid-area: left; }
+        #moveRight { grid-area: right; }
     </style>
 </head>
 <body>
     <div id="map-container">
         <div class="controls">
-            <button id="zoomIn">Zoom In</button>
-            <button id="zoomOut">Zoom Out</button>
-            <button id="rotateUp">Rotate Up</button>
-            <button id="rotateDown">Rotate Down</button>
-            <button id="toggleNorth">North Up</button>
-            <button id="toggleProjection">Toggle Projection</button>
+            <div class="zoom-controls">
+                <button id="zoomIn">Zoom In</button>
+                <button id="zoomOut">Zoom Out</button>
+            </div>
+            <div class="direction-controls">
+                <button id="moveUp">↑</button>
+                <button id="moveLeft">←</button>
+                <button id="moveRight">→</button>
+                <button id="moveDown">↓</button>
+            </div>
+            <div class="options-controls">
+                <button id="toggleNorth">North Up</button>
+                <button id="toggleProjection">Toggle Projection</button>
+            </div>
         </div>
     </div>
 
@@ -114,7 +144,11 @@
         let zoomInstance = geoZoom()
             .projection(currentProjection)
             .onMove(render)
-            (svg.node());
+            .animate(true)
+            .animationDuration(300); // Faster animation for more fluid movement
+            
+        // Apply to SVG element
+        zoomInstance(svg.node());
 
         function smoothTransition(callback) {
             svg.selectAll('path')
@@ -170,20 +204,28 @@
             currentProjection.scale(scale / 1.5);
             renderWithTransition();
         };
-        
-        document.getElementById('rotateUp').onclick = () => {
-            const [x, y, z] = currentProjection.rotate();
-            smoothTransition(t => {
-                currentProjection.rotate([x, y - (20 * t), z]);
-            });
-        };
-        
-        document.getElementById('rotateDown').onclick = () => {
-            const [x, y, z] = currentProjection.rotate();
-            smoothTransition(t => {
-                currentProjection.rotate([x, y + (20 * t), z]);
-            });
-        };
+
+        // Direction controls using built-in animation
+        ['up', 'down', 'left', 'right'].forEach(direction => {
+            document.getElementById(`move${direction.charAt(0).toUpperCase() + direction.slice(1)}`)
+                .onclick = () => zoomInstance.moveDirection(direction);
+        });
+
+        // Keyboard controls using built-in animation
+        document.addEventListener('keydown', (event) => {
+            const directionMap = {
+                'ArrowUp': 'up',
+                'ArrowDown': 'down',
+                'ArrowLeft': 'left',
+                'ArrowRight': 'right'
+            };
+            
+            const direction = directionMap[event.key];
+            if (direction) {
+                zoomInstance.moveDirection(direction);
+                event.preventDefault();
+            }
+        });
         
         let northUp = false;
         const toggleNorthBtn = document.getElementById('toggleNorth');
@@ -194,15 +236,9 @@
             toggleNorthBtn.classList.toggle('active', northUp);
             
             if (northUp) {
-                // When enabling north up, smoothly transition to north
-                const [x, y, z] = currentProjection.rotate();
-                smoothTransition(t => {
-                    currentProjection.rotate([
-                        x * (1 - t), // Longitude to 0
-                        y * (1 - t), // Latitude to 0
-                        0           // Roll to 0
-                    ]);
-                });
+                // When enabling north up, smoothly transition to keep current x,y but set z to 0
+                const [x, y] = currentProjection.rotate();
+                zoomInstance.rotateTo([x, y, 0]);
             }
         };
 
@@ -225,8 +261,12 @@
             // Update zoom instance with new projection
             zoomInstance = geoZoom()
                 .projection(currentProjection)
-                .onMove(render) // Use immediate render for direct interactions
-                (svg.node());
+                .onMove(render)
+                .animate(true)
+                .animationDuration(300);
+            
+            // Apply to SVG element
+            zoomInstance(svg.node());
             
             renderWithTransition(); // Use transition for projection toggle
         };
