@@ -176,16 +176,11 @@
       }
 
       // Smooth render with transition (for button clicks)
-      function renderWithTransition() {
-        svg.selectAll("path").transition().duration(750).attr("d", path);
-      }
-
       function angleTransition(from, to) {
         const i = d3.interpolateArray(from, to);
         svg
           .selectAll("path")
           .transition()
-          .duration(750)
           .tween("tween", function () {
             return function (t) {
               currentProjection.rotate(i(t));
@@ -202,22 +197,18 @@
 
       // Control buttons functionality
       document.getElementById("zoomIn").onclick = () => {
-        const scale = currentProjection.scale();
-        currentProjection.scale(scale * 1.5);
-        renderWithTransition();
+        // Use d3.zoom's scale transform
+        svg.transition().call(zoomInstance.getZoom().scaleBy, 1.5);
       };
 
       document.getElementById("zoomOut").onclick = () => {
-        const scale = currentProjection.scale();
-        currentProjection.scale(scale / 1.5);
-        renderWithTransition();
+        // Use d3.zoom's scale transform
+        svg.transition().call(zoomInstance.getZoom().scaleBy, 0.5);
       };
 
       // Direction controls with proper transition
       ["up", "down", "left", "right"].forEach((direction) => {
-        const btnDirection = document.querySelector(
-          `[data-dir=${direction}]`
-        );
+        const btnDirection = document.querySelector(`[data-dir=${direction}]`);
         btnDirection.onclick = () => {
           directionTransition(direction);
         };
@@ -282,7 +273,7 @@
         // Apply to SVG element
         zoomInstance(svg.node());
 
-        renderWithTransition(); // Use transition for projection toggle
+        svg.selectAll("path").transition().attr("d", path);
       };
     </script>
   </body>

@@ -8,6 +8,7 @@ import {
 import { GeoProjection } from "d3-geo";
 import versor from "versor";
 import Kapsule from "kapsule";
+import { i } from "vitest/dist/reporters-yx5ZTtEV.js";
 
 type Direction = "left" | "right" | "up" | "down";
 
@@ -30,6 +31,7 @@ interface GeoZoomMethods {
     degrees?: number
   ) => [number, number, number];
   rotateTo: (rotation: [number, number, number]) => [number, number, number];
+  getZoom: () => ZoomBehavior<Element, unknown>;
 }
 
 type GeoZoomInstance = ((element: HTMLElement) => void) &
@@ -82,6 +84,13 @@ export default Kapsule({
   },
 
   methods: {
+    getZoom(state: State): ZoomBehavior<Element, unknown> {
+      if (!state.zoom) {
+        throw new Error("Zoom behavior not initialized");
+      }
+      return state.zoom;
+    },
+
     rotateTo(
       state: State,
       targetRotation: [number, number, number]
@@ -152,7 +161,6 @@ export default Kapsule({
   },
 
   init(nodeEl: Element, state: State) {
-    console.log("init");
     // Initialize state with defaults
     state.unityScale = state.projection?.scale() || 1;
     state.currentScale = state.unityScale;
@@ -215,8 +223,13 @@ export default Kapsule({
       state.onMove({ scale: state.currentScale, rotation: finalRotation });
     }
 
+    function getCenter(selection: SVGAElement): [number, number] | null {
+      const bbox = selection.getBBox();
+      return [bbox.x + bbox.width / 2, bbox.y + bbox.height / 2];
+    }
+
     function getPointerCoords(
-      zoomEv: D3ZoomEvent<Element, unknown>
+      zoomEv: D3ZoomEvent<SVGAElement, unknown>
     ): [number, number] | null {
       const avg = (vals: number[]): number =>
         vals.reduce((agg, v) => agg + v, 0) / vals.length;
@@ -231,7 +244,17 @@ export default Kapsule({
         ];
       }
 
-      return pointers.length ? pointers[0] : null;
+      const coord = pointers.length ? pointers[0] : null;
+
+      if (!coord) {
+        return null;
+      }
+
+      if (coord[0] === 0 && coord[1] === 0) {
+        // probably an init coord or a programatic zoom
+        return getCenter(nodeEl);
+      }
+      return coord;
     }
   },
 }) as (config?: any) => GeoZoomInstance;
