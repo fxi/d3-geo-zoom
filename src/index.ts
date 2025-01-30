@@ -1,1 +1,1 @@
-export { default as geoZoom } from './geoZoom';
+export { GeoZoom } from './geoZoom';
