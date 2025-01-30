@@ -53,6 +53,9 @@ export class GeoZoom {
     const oldProjection = this.projection;
     if (!oldProjection) {
       this.projection = newProjection;
+      // Store initial scale when first setting the projection
+      this.initialScale = newProjection.scale();
+      this.unityScale = this.initialScale;
       return this;
     }
 

@@ -27,7 +27,7 @@
 <body>
   <div id="world"></div>
   <script type="module">
-    import { geoZoom } from '/dist/@fxi/d3-geo-zoom.esm.js';
+    import { GeoZoom } from '/dist/@fxi/d3-geo-zoom.esm.js';
     import * as d3 from 'd3';
     import { feature } from 'topojson-client';
 
@@ -61,11 +61,10 @@
     const path = d3.geoPath()
       .projection(projection);
 
-    geoZoom()
-      .projection(projection)
+    new GeoZoom(svg.node())
+      .setProjection(projection)
       .onMove(render)
-      .northUp(true)
-      (svg.node());
+      .setNorthUp(true);
 
     fetch('https://unpkg.com/world-atlas@1/world/110m.json')
       .then(response => response.json())
