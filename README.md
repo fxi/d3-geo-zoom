@@ -15,7 +15,7 @@ npm install @fxi/d3-geo-zoom
 ## Quick Start
 
 ```javascript
-import { geoZoom } from 'd3-geo-zoom';
+import { GeoZoom } from '@fxi/d3-geo-zoom';
 import { select } from 'd3-selection';
 import { geoOrthographic, geoPath } from 'd3-geo';
 
@@ -28,23 +28,78 @@ const svg = select('body')
 // Setup projection
 const projection = geoOrthographic()
   .scale(250)
-  .center([0, 0]);
+  .translate([400, 300]);
 
 // Create path generator
 const path = geoPath()
   .projection(projection);
 
 // Initialize zoom behavior
-const zoom = geoZoom()
-  .projection(projection)
+const zoom = new GeoZoom(svg.node());
+
+// Configure zoom behavior
+zoom
+  .setProjection(projection)
+  .setNorthUp(true)
   .onMove(() => {
     // Update map on zoom/pan
-    g.selectAll('path').attr('d', path);
+    svg.selectAll('path').attr('d', path);
   });
-
-// Apply zoom behavior to SVG
-svg.call(zoom);
 ```
+
+## API Reference
+
+### Constructor
+
+#### new GeoZoom(element)
+Creates a new GeoZoom instance.
+- `element`: DOM element to attach the zoom behavior to (typically an SVG element)
+
+### Methods
+
+#### setProjection(projection)
+Sets the D3 geographic projection to use.
+- `projection`: A D3 geographic projection (e.g., geoOrthographic, geoMercator)
+- Returns: this (for method chaining)
+
+#### rotateTo(rotation)
+Smoothly rotates to the specified rotation angles.
+- `rotation`: Array of [lambda, phi, gamma] rotation angles in degrees
+- Returns: this (for method chaining)
+
+#### move(direction, step = 10)
+Moves the projection in the specified direction.
+- `direction`: One of 'left', 'right', 'up', 'down', or 'north'
+- `step`: Step size in degrees (default: 10)
+- Returns: this (for method chaining)
+
+#### reset()
+Resets zoom and rotation to initial state.
+- Returns: this (for method chaining)
+
+#### setNorthUp(enabled)
+Enables/disables north-up constraint.
+- `enabled`: Boolean to enable/disable north-up mode
+- Returns: this (for method chaining)
+
+#### setScaleExtent(extent)
+Sets the allowed scale range.
+- `extent`: Array of [minimum, maximum] scale values
+- Returns: this (for method chaining)
+
+#### setTransitionDuration(duration)
+Sets the duration for smooth transitions.
+- `duration`: Duration in milliseconds
+- Returns: this (for method chaining)
+
+#### onMove(callback)
+Sets a callback function to be called when the projection moves.
+- `callback`: Function that receives { scale, rotation } as parameter
+- Returns: this (for method chaining)
+
+#### getZoom()
+Gets the underlying D3 zoom behavior.
+- Returns: D3 zoom behavior instance
 
 For more examples and detailed API documentation, visit our [documentation site](https://fxi.github.io/d3-geo-zoom).
 

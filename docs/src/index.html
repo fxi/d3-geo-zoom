@@ -43,7 +43,7 @@
             <h2>Examples</h2>
             <div class="code-example">
                 <h3>Basic Usage</h3>
-                <pre><code>import { geoZoom } from 'd3-geo-zoom';
+                <pre><code>import { GeoZoom } from '@fxi/d3-geo-zoom';
 import { select } from 'd3-selection';
 import { geoOrthographic, geoPath } from 'd3-geo';
 
@@ -56,46 +56,48 @@ const svg = select('#map')
 // Setup projection
 const projection = geoOrthographic()
   .scale(250)
-  .center([0, 0]);
+  .translate([400, 300]);
 
 // Create path generator
 const path = geoPath()
   .projection(projection);
 
-// Initialize zoom behavior
-const zoom = geoZoom({
-  projection: projection,
-  onMove: () => {
+// Initialize and configure zoom behavior
+const zoom = new GeoZoom(svg.node());
+zoom
+  .setProjection(projection)
+  .setNorthUp(true)
+  .onMove(() => {
     // Update map on zoom/pan
-    g.selectAll('path').attr('d', path);
-  }
-});
-
-// Apply zoom behavior to SVG
-zoom(svg.node());</code></pre>
+    svg.selectAll('path').attr('d', path);
+  });</code></pre>
             </div>
         </section>
 
         <section id="api">
             <h2>API Reference</h2>
             <div class="api-docs">
-                <h3>geoZoom(config)</h3>
-                <p>Creates a new geo zoom behavior with the provided configuration.</p>
-
-                <h4>Configuration Options</h4>
-                <ul>
-                    <li><code>projection</code> - The geographic projection to use</li>
-                    <li><code>scaleExtent</code> - Array defining allowed scale range [min, max]</li>
-                    <li><code>northUp</code> - Boolean to prevent z-axis rotation</li>
-                    <li><code>onMove</code> - Callback function called after zoom/pan</li>
-                </ul>
+                <h3>new GeoZoom(element)</h3>
+                <p>Creates a new GeoZoom instance for the provided DOM element (typically an SVG element).</p>
 
                 <h4>Methods</h4>
                 <ul>
-                    <li><code>projection(projection)</code> - Updates the geographic projection</li>
-                    <li><code>scaleExtent([min, max])</code> - Updates allowed scale range</li>
-                    <li><code>northUp(boolean)</code> - Updates z-axis rotation prevention</li>
-                    <li><code>onMove(callback)</code> - Updates the move callback</li>
+                    <li><code>setProjection(projection)</code> - Sets the D3 geographic projection to use</li>
+                    <li><code>rotateTo(rotation)</code> - Smoothly rotates to specified [lambda, phi, gamma] angles</li>
+                    <li><code>move(direction, step)</code> - Moves in specified direction ('left', 'right', 'up', 'down', 'north')</li>
+                    <li><code>reset()</code> - Resets zoom and rotation to initial state</li>
+                    <li><code>setNorthUp(enabled)</code> - Enables/disables north-up constraint</li>
+                    <li><code>setScaleExtent([min, max])</code> - Sets allowed scale range</li>
+                    <li><code>setTransitionDuration(duration)</code> - Sets duration for smooth transitions</li>
+                    <li><code>onMove(callback)</code> - Sets callback for projection changes</li>
+                    <li><code>getZoom()</code> - Gets the underlying D3 zoom behavior</li>
+                </ul>
+
+                <h4>Callback Parameters</h4>
+                <p>The onMove callback receives an object with:</p>
+                <ul>
+                    <li><code>scale</code> - Current projection scale</li>
+                    <li><code>rotation</code> - Current rotation as [lambda, phi, gamma]</li>
                 </ul>
             </div>
         </section>
