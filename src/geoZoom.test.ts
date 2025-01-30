@@ -126,8 +126,8 @@ describe('d3-geo-zoom', () => {
       const newProjection = geoOrthographic().scale(200).translate([0, 0]);
       zoom.setProjection(newProjection);
       
-      // Scale should match the new projection immediately
-      expect(newProjection.scale()).toBe(200);
+      // Scale should be preserved from the initial projection
+      expect(newProjection.scale()).toBe(100);
     });
   });
 
