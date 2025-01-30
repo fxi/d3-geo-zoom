@@ -186,7 +186,6 @@
       toggleNorthBtn.onclick = () => {
         northUp = !northUp;
         zoomInstance.setNorthUp(northUp);
-        zoomInstance.move("north");
         toggleNorthBtn.classList.toggle("active", northUp);
       };
 

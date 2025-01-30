@@ -68,6 +68,7 @@ export class GeoZoom {
     this.projection.rotate(oldRotation);
     this.projection.scale(oldScale);
 
+    this.notifyMove();
     return this;
   }
 
@@ -258,11 +259,10 @@ export class GeoZoom {
   // Setters
   setNorthUp(enabled?: boolean): this {
     if (enabled === undefined) return this;
-    this.northUp = enabled;
-    if (enabled && this.projection?.rotate) {
-      const [lambda, phi] = this.projection.rotate();
-      this.projection.rotate([lambda, phi, 0]);
+    if (enabled) {
+      this.move('north');
     }
+    this.northUp = enabled;
     return this;
   }
 
